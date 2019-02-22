@@ -1,0 +1,26 @@
+{
+    "name": "cuadrosbackend",
+    "version": "1.0.0",
+    "description": "backend de pagina de cuadros",
+    "main": "index.js",
+    "scripts": {
+        "start": "node app.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Carlos Escudero",
+    "license": "ISC",
+    "dependencies": {
+        "bcrypt": "^3.0.2",
+        "express": "^4.16.4",
+        "express-fileupload": "^1.1.1-alpha.1",
+        "google-auth-library": "^2.0.2",
+        "jsonwebtoken": "^8.4.0",
+        "mercadopago": "^1.0.22",
+        "mongoose": "^5.4.0",
+        "body-parser": "^1.18.2",
+        "mongoose-unique-validator": "^2.0.2"
+    },
+    "devDependencies": {
+        "nodemon": "^1.18.9"
+    }
+}
