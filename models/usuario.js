@@ -18,8 +18,8 @@ var usuarioSchema = new Schema({
     img: { type: String, required: false },
     role: { type: String, required: true, default: 'USER_ROLE', enum: rolesValidos },
     google: { type: Boolean, default: false },
-    facebook: { type: Boolean, default: false }
-
+    facebook: { type: Boolean, default: false },
+    idFB: { type: String, default: false }
 }, { collection: 'usuarios' })
 usuarioSchema.plugin(uniqueValidator, { message: 'el {PATH} debe de ser unico' });
 module.exports = mongoose.model('Usuario', usuarioSchema);

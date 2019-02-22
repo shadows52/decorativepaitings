@@ -106,7 +106,7 @@ app.post('/google', async(req, res) => {
 
 app.post('/facebook', (req, res) => {
     var facebookUser = req.body;
-    Usuario.findOne({ email: facebookUser.email }, (err, usuarioDB) => {
+    Usuario.findOne({ idFB: facebookUser.idFB }, (err, usuarioDB) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
@@ -115,31 +115,23 @@ app.post('/facebook', (req, res) => {
             });
         }
         if (usuarioDB) {
-            if (usuarioDB.facebook === false) {
-                return res.status(500).json({
-                    ok: false,
-                    mensaje: 'debe de usar su autenticacion normal',
-                    errors: err
-                });
-            } else {
-                var token = jwt.sign({ usuario: usuarioDB }, SEED, { expiresIn: 28800 }); // 4 horas
-                usuarioDB.password = 'ella no te ama';
-                res.status(200).json({
-                    ok: true,
-                    usuario: usuarioDB,
-                    token: token,
-                    id: usuarioDB._id
-                })
-            }
+            var token = jwt.sign({ usuario: usuarioDB }, SEED, { expiresIn: 28800 }); // 4 horas
+            usuarioDB.password = 'ella no te ama';
+            res.status(200).json({
+                ok: true,
+                usuario: usuarioDB,
+                token: token,
+                id: usuarioDB._id
+            })
         } else {
             // el usuario no existe ay que crearlo
             var usuario = new Usuario;
             usuario.nombre = facebookUser.nombre;
             usuario.email = facebookUser.email;
             usuario.img = facebookUser.img;
+            usuario.idFB = facebookUser.idFB;
             usuario.facebook = true;
             usuario.password = ":)";
-
             usuario.save((err, usuarioDB) => {
                 var token = jwt.sign({ usuario: usuarioDB }, SEED, { expiresIn: 28800 }); // 4 horas
                 usuarioDB.password = 'ella no te ama';
