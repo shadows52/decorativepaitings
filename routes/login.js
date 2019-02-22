@@ -127,12 +127,19 @@ app.post('/facebook', (req, res) => {
             // el usuario no existe ay que crearlo
             var usuario = new Usuario;
             usuario.nombre = facebookUser.nombre;
-            usuario.email = facebookUser.email;
+            usuario.email = facebookUser.idFB + '@facebook.com';
             usuario.img = facebookUser.img;
             usuario.idFB = facebookUser.idFB;
             usuario.facebook = true;
             usuario.password = ":)";
             usuario.save((err, usuarioDB) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'error al crearUsuario',
+                        errors: err
+                    });
+                }
                 var token = jwt.sign({ usuario: usuarioDB }, SEED, { expiresIn: 28800 }); // 4 horas
                 usuarioDB.password = 'ella no te ama';
                 res.status(200).json({
