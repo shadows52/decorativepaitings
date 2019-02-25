@@ -57,12 +57,8 @@ app.post('/', mdAautenticacion.verificaToken, (req, res) => {
         })
     }
     var imagenOriginal = req.files.imagenOriginal;
-    // var imagenCreada = req.files.imagenCreada;
     var nombrecortado1 = imagenOriginal.name.split('.');
     var extencion1 = nombrecortado1[nombrecortado1.length - 1];
-    // var nombrecortado2 = imagenCreada.name.split('.');
-    // var extencion2 = nombrecortado2[nombrecortado2.length - 1];
-
     var extencionesPermitidas = ['jpg', 'png', 'jpeg', 'svg'];
 
     if (extencionesPermitidas.indexOf(extencion1) < 0) {
@@ -72,22 +68,12 @@ app.post('/', mdAautenticacion.verificaToken, (req, res) => {
             err: { mesage: 'solo se permiten las siguientes extenciones jpg, png, jpeg y gif' }
         })
     }
-    /*
-    if (extencionesPermitidas.indexOf(extencion2) < 0) {
-        res.status(400).json({
-            ok: false,
-            mensaje: 'extencion no permitida en imagen Creada',
-            err: { mesage: 'solo se permiten las siguientes extenciones jpg, png, jpeg y gif' }
-        })
-    } */
     //nombre del archivo personalizado
     var nombreArchivoIMGO = `${id}-Original-${new Date().getMilliseconds()}.${extencion1}`;
-    // var nombreArchivoIMGC = `${id}-Creada-${new Date().getMilliseconds()}.${extencion2}`;
 
     // mover el archivo del temporal a un path
 
     var pathOriginal = `./uploads/creados/${nombreArchivoIMGO}`;
-    // var pathCreado = `./uploads/creados/${nombreArchivoIMGC}`;
 
     imagenOriginal.mv(pathOriginal, err => {
         if (err) {
@@ -98,16 +84,6 @@ app.post('/', mdAautenticacion.verificaToken, (req, res) => {
             });
         }
     });
-    /*
-    imagenCreada.mv(pathCreado, err => {
-        if (err) {
-            res.status(500).json({
-                ok: false,
-                mensaje: 'error al mover la imagen Creada',
-                err: err
-            });
-        }
-    }); */
     let cuadroNuevo = new CuadrosCreados({
         precio: body.precio,
         usuario: id,
@@ -140,8 +116,8 @@ app.post('/', mdAautenticacion.verificaToken, (req, res) => {
 app.delete('/:id', mdAautenticacion.verificaToken, (req, res) => {
 
     var id = req.params.id;
-
     CuadrosCreados.findByIdAndRemove(id, (err, creadoBorrado) => {
+        var imagenBorar = './uploads/creados/' + creadoBorrado.imgOriginal;
         if (err) {
             return res.status(500).json({
                 ok: false,
@@ -154,6 +130,9 @@ app.delete('/:id', mdAautenticacion.verificaToken, (req, res) => {
                 ok: false,
                 mensaje: 'no existe un cuadro con ese id'
             })
+        }
+        if (fs.existsSync(imagenBorar)) {
+            fs.unlinkSync(imagenBorar);
         }
         res.status(200).json({
             ok: true,

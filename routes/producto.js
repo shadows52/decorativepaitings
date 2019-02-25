@@ -10,9 +10,10 @@ var Producto = require('../models/producto');
 
 app.get('/aleatorio/', (req, res) => {
     var N = Producto.count();
-    var R = Math.floor(Math.random() * N)
+    var R = Math.random();
 
-    Producto.find({}).skip(3)
+    Producto.find({ random: { $gte: R } })
+        .sort({ random: 1 })
         .limit(4)
         .exec((err, producto) => {
             if (err) {
@@ -24,7 +25,7 @@ app.get('/aleatorio/', (req, res) => {
             }
             res.status(200).json({
                 ok: true,
-                producto: producto
+                producto: producto,
             });
         });
 
@@ -277,8 +278,12 @@ app.delete('/:id', mdAautenticacion.verificaToken, (req, res) => {
 // obtiene productos por categoria
 
 app.get('/categoria/:id', (req, res) => {
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
     var id = req.params.id;
     Producto.find({ categoria: id })
+        .skip(desde)
+        .limit(12)
         .populate('producto', 'nombre img precio')
         .exec((err, productoCat) => {
             if (err) {
@@ -288,18 +293,25 @@ app.get('/categoria/:id', (req, res) => {
                     err: err
                 })
             }
-            res.status(200).json({
-                ok: true,
-                productoCat: productoCat
-            });
+            Producto.count({ categoria: id }, (err, conteo) => {
+                res.status(200).json({
+                    ok: true,
+                    productoCat: productoCat,
+                    conteo: conteo
+                });
+            })
         });
 });
 
 // obtiene porductos por subcategoria
 
 app.get('/subcategoria/:id', (req, res) => {
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
     var id = req.params.id;
     Producto.find({ subCategoria: id })
+        .skip(desde)
+        .limit(12)
         .populate('producto', 'nombre img precio')
         .exec((err, productoSubCat) => {
             if (err) {
@@ -309,10 +321,13 @@ app.get('/subcategoria/:id', (req, res) => {
                     err: err
                 })
             }
-            res.status(200).json({
-                ok: true,
-                productoSubCat: productoSubCat
-            });
+            Producto.count({ subCategoria: id }, (err, conteo) => {
+                res.status(200).json({
+                    ok: true,
+                    productoSubCat: productoSubCat,
+                    conteo: conteo
+                });
+            })
         });
 });
 
