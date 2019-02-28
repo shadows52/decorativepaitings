@@ -69,6 +69,6 @@ app.use('/', appRoutes);
 
 //escuchar peticiones
 
-app.listen(3400, () => {
-    console.log('express server corriendo en el puerto ' + 3400 + ' \x1b[32m%s\x1b[0m', 'online');
+app.listen(8080, () => {
+    console.log('express server corriendo en el puerto ' + 8080 + ' \x1b[32m%s\x1b[0m', 'online');
 });

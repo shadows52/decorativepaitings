@@ -112,7 +112,7 @@ app.post('/', mdAautenticacion.verificaToken, (req, res) => {
         if (existe) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'el producto ya existe no puedes agregar un producto que ya existe',
+                mensaje: 'ya existe en tu lista de deseos',
                 existe
             })
         }

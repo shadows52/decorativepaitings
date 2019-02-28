@@ -4,6 +4,7 @@ var mdAautenticacion = require('../middlewares/autenticacion');
 var Venta = require('../models/venta');
 var Status = require('../models/statusPago');
 var mp = new MP("8793669845634348", "oxFiekcITZI2aS5BwnXgxMx3KsBAF7Cc");
+var Carrito = require('../models/carritoCompras');
 var app = express();
 
 app.post('/', mdAautenticacion.verificaToken, (req, res, ) => {
@@ -22,10 +23,38 @@ app.post('/', mdAautenticacion.verificaToken, (req, res, ) => {
                 err: err
             })
         }
+        var idVenta = ventaDB._id;
+        Carrito.find({ $and: [{ usuario: body.usuario }, { Venta: 'sinID' }] })
+            .exec((err, carrito) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'error al conectar con la base de datos',
+                        err: err
+                    })
+                }
+                arrayCarritos = carrito;
+                arrayCarritos.forEach((element) => {
+                    element.Venta = idVenta;
+                    element.save((err, carritoActualizado) => {
+                        if (err) {
+                            return res.status(400).json({
+                                ok: false,
+                                mensaje: "error al actualizar pago",
+                                errors: err
+                            });
+                        }
+                        res.status(200).json({
+                            ok: true,
+                            carrito: carritoActualizado,
+                        });
+                    });
+                });
+            });
         var preference = {
             items: [{
                 id: ventaDB._id,
-                title: 'venta NO. ' + ventaDB._id,
+                title: 'venta NO.' + ventaDB._id,
                 quantity: 1,
                 currency_id: 'MXN',
                 unit_price: precio
@@ -64,18 +93,74 @@ app.post('/notificacion/', (req, res) => {
         topic: topic,
         idPago: id
     })
-    status.save((err, statusDB) => {
-        if (err) {
-            return res.status(400).json({
-                ok: false,
-                mensaje: 'error al conectar con la base de datos',
-                err: err
+    if (topic === 'payment') {
+        mp.get('/v1/payments/' + id)
+            .then(function(resp) {
+                var ventasplit = resp.response.description;
+                var arrayspit = ventasplit.split('.');
+                var idVenta = arrayspit[arrayspit.length - 1];
+                var status = resp.response.status;
+                if (status === 'approved') {
+                    Venta.findById(idVenta, (err, respVenta) => {
+                        if (err) {
+                            return res.status(500).json({
+                                ok: false,
+                                mensaje: 'no se encontro el producto en la base de datos',
+                                err: err
+                            })
+                        }
+                        respVenta.pagado = true;
+                        respVenta.save((err, pagoActualizado) => {
+                            if (err) {
+                                return res.status(400).json({
+                                    ok: false,
+                                    mensaje: "error al actualizar pago",
+                                    errors: err
+                                });
+                            }
+                            res.status(201).json({
+                                ok: true,
+                                mensaje: pagoActualizado
+                            })
+                        })
+                    })
+                }
+            }).catch(function(error) {
+                res.status(400).json({
+                    ok: false,
+                    mensaje: error
+                })
+            });
+    }
+    if (topic === 'chargebacks') {
+        status.save((err, statusDB) => {
+            if (err) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'error al conectar con la base de datos',
+                    err: err
+                })
+            }
+            res.status(201).json({
+                ok: true,
+                mensaje: statusDB
             })
-        }
-        res.status(201).json({
-            ok: true,
-            mensaje: statusDB
         })
-    })
+    }
+    if (topic === 'merchant_order') {
+        status.save((err, statusDB) => {
+            if (err) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'error al conectar con la base de datos',
+                    err: err
+                })
+            }
+            res.status(201).json({
+                ok: true,
+                mensaje: statusDB
+            })
+        })
+    }
 });
 module.exports = app;
