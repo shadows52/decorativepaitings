@@ -131,6 +131,19 @@ app.post('/notificacion/', (req, res) => {
                         })
                     })
                 }
+                status.save((err, statusDB) => {
+                    if (err) {
+                        return res.status(400).json({
+                            ok: false,
+                            mensaje: 'error al conectar con la base de datos',
+                            err: err
+                        })
+                    }
+                    res.status(201).json({
+                        ok: true,
+                        mensaje: statusDB
+                    })
+                })
             }).catch(function(error) {
                 res.status(400).json({
                     ok: false,
