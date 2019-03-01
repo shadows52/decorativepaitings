@@ -44,10 +44,6 @@ app.post('/', mdAautenticacion.verificaToken, (req, res, ) => {
                                 errors: err
                             });
                         }
-                        res.status(200).json({
-                            ok: true,
-                            carrito: carritoActualizado,
-                        });
                     });
                 });
             });
@@ -75,7 +71,8 @@ app.post('/', mdAautenticacion.verificaToken, (req, res, ) => {
             .then(function(resp) {
                 res.status(201).json({
                     ok: true,
-                    urlPago: resp.response.init_point
+                    urlPago: resp.response.init_point,
+                    idVenta: idVenta
                 })
             }).catch(function(error) {
                 res.status(400).json({
@@ -118,10 +115,19 @@ app.post('/notificacion/', (req, res) => {
                                     errors: err
                                 });
                             }
-                            res.status(201).json({
-                                ok: true,
-                                mensaje: pagoActualizado
+                        })
+                    })
+                    status.save((err, statusDB) => {
+                        if (err) {
+                            return res.status(400).json({
+                                ok: false,
+                                mensaje: 'error al conectar con la base de datos',
+                                err: err
                             })
+                        }
+                        res.status(201).json({
+                            ok: true,
+                            mensaje: statusDB
                         })
                     })
                 }
