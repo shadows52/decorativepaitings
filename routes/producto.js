@@ -68,7 +68,6 @@ app.get('/etiquetas/:id', (req, res) => {
             });
     });
 });
-
 // mostrar productos pagina principal
 
 app.get('/principal', (req, res) => {
@@ -94,6 +93,7 @@ app.get('/principal', (req, res) => {
             })
         });
 });
+
 
 // mostrar producto por ID
 

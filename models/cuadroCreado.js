@@ -10,6 +10,7 @@ var cuadroCreadoSchema = new Schema({
     cantidad: { type: Number, required: true, default: 1 },
     imgOriginal: { type: String, required: true },
     imgCreada: { type: String, required: true },
+    Venta: { type: String, required: true, default: 'sinID' }
 }, { collection: 'cuadrosCreados' })
 
 cuadroCreadoSchema.plugin(uniqueValidator, { message: 'el {PATH} debe de ser unico' });

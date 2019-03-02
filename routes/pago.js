@@ -5,14 +5,24 @@ var Venta = require('../models/venta');
 var Status = require('../models/statusPago');
 var mp = new MP("8793669845634348", "oxFiekcITZI2aS5BwnXgxMx3KsBAF7Cc");
 var Carrito = require('../models/carritoCompras');
+var DatosEnvio = require('../models/datosEnvio');
+var CuadroCreado = require('../models/cuadroCreado');
 var app = express();
 
 app.post('/', mdAautenticacion.verificaToken, (req, res, ) => {
     var body = req.body;
     var precio = parseInt(body.precio);
+    var date = new Date;
+    dia = date.getDate();
+    mesN = date.getMonth();
+    arrayMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    mes = arrayMeses[mesN];
+    anio = date.getFullYear()
+    fecha = anio + '/' + mes + '/' + dia;
     var venta = new Venta({
         usuario: body.usuario,
-        monto: body.precio
+        monto: body.precio,
+        fecha: fecha
     });
 
     venta.save((err, ventaDB) => {
@@ -35,6 +45,52 @@ app.post('/', mdAautenticacion.verificaToken, (req, res, ) => {
                 }
                 arrayCarritos = carrito;
                 arrayCarritos.forEach((element) => {
+                    element.Venta = idVenta;
+                    element.save((err, carritoActualizado) => {
+                        if (err) {
+                            return res.status(400).json({
+                                ok: false,
+                                mensaje: "error al actualizar pago",
+                                errors: err
+                            });
+                        }
+                    });
+                });
+            });
+        CuadroCreado.find({ $and: [{ usuario: body.usuario }, { Venta: 'sinID' }] })
+            .exec((err, carritoCreado) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'error al conectar con la base de datos',
+                        err: err
+                    })
+                }
+                arrayCarritos = carritoCreado;
+                arrayCarritos.forEach((element) => {
+                    element.Venta = idVenta;
+                    element.save((err, carritoActualizado) => {
+                        if (err) {
+                            return res.status(400).json({
+                                ok: false,
+                                mensaje: "error al actualizar pago",
+                                errors: err
+                            });
+                        }
+                    });
+                });
+            });
+        DatosEnvio.find({ $and: [{ usuario: body.usuario }, { Venta: 'sinID' }] })
+            .exec((err, envio) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'error al conectar con la base de datos',
+                        err: err
+                    })
+                }
+                arrayDireccion = envio;
+                arrayDireccion.forEach((element) => {
                     element.Venta = idVenta;
                     element.save((err, carritoActualizado) => {
                         if (err) {
@@ -125,10 +181,10 @@ app.post('/notificacion/', (req, res) => {
                                 err: err
                             })
                         }
-                        res.status(201).json({
+                        return res.status(201).json({
                             ok: true,
                             mensaje: statusDB
-                        })
+                        });
                     })
                 }
                 status.save((err, statusDB) => {
@@ -139,7 +195,7 @@ app.post('/notificacion/', (req, res) => {
                             err: err
                         })
                     }
-                    res.status(201).json({
+                    return res.status(201).json({
                         ok: true,
                         mensaje: statusDB
                     })
@@ -150,6 +206,19 @@ app.post('/notificacion/', (req, res) => {
                     mensaje: error
                 })
             });
+        status.save((err, statusDB) => {
+            if (err) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'error al conectar con la base de datos',
+                    err: err
+                })
+            }
+            res.status(201).json({
+                ok: true,
+                mensaje: statusDB
+            })
+        })
     }
     if (topic === 'chargebacks') {
         status.save((err, statusDB) => {
@@ -181,5 +250,31 @@ app.post('/notificacion/', (req, res) => {
             })
         })
     }
+});
+
+// obtiene compras por ID del cliente
+
+app.get('/:id', mdAautenticacion.verificaToken, (req, res) => {
+    id = req.params.id;
+    Venta.find({ usuario: id })
+        .exec((err, ventas) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'error al conectar con la base de datos',
+                    err: err
+                })
+            }
+            res.status(200).json({
+                ok: true,
+                ventas: ventas
+            })
+        });
+});
+
+// obtiene las ultimas compras
+
+app.get('/admin', [mdAautenticacion.verificaToken, mdAautenticacion.verificaAdmin_ROLE], (req, res) => {
+
 });
 module.exports = app;

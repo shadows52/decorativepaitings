@@ -66,6 +66,28 @@ app.get('/usuario/:id', mdAautenticacion.verificaToken, (req, res) => {
         });
 });
 
+// mostrar productos por ID venta
+
+app.get('/idventa/:id', mdAautenticacion.verificaToken, (req, res) => {
+    var id = req.params.id
+    Carrito.find({ Venta: id })
+        .populate('producto', 'img nombre')
+        .exec((err, carritoDB) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'error al conectar con la base de datos',
+                    err: err
+                })
+            }
+            res.status(200).json({
+                ok: true,
+                carrito: carritoDB
+            })
+        })
+});
+
+
 // crear carrito de compras por usuario
 
 app.post('/', mdAautenticacion.verificaToken, (req, res) => {

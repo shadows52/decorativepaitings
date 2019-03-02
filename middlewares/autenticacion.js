@@ -17,7 +17,6 @@ exports.verificaToken = function(req, res, next) {
         }
         req.usuario = decoded.usuario;
         next();
-
     })
 }
 
@@ -27,7 +26,7 @@ exports.verificaAdmin_ROLE = function(req, res, next) {
 
     var usuario = req.usuario;
 
-    if (usuario.role === 'ADMIN_ROLE') {
+    if (usuario.role === 'ALCACHOFA7891_ROLE') {
         next();
         return;
     } else {

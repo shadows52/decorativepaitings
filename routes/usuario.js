@@ -10,9 +10,12 @@ var Usuario = require('../models/usuario');
 
 
 //obtener todos los usuarios
-app.get('/', (req, res) => {
-
+app.get('/', [mdAautenticacion.verificaToken, mdAautenticacion.verificaAdmin_ROLE], (req, res) => {
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
     Usuario.find({}, 'nombre email img role', )
+        .skip(desde)
+        .limit(12)
         .exec((err, usuarios) => {
             if (err) {
                 return res.status(500).json({
@@ -21,19 +24,22 @@ app.get('/', (req, res) => {
                     err: err
                 })
             }
-            res.status(200).json({
-                ok: true,
-                usuarios: usuarios
-            });
+            Usuario.count({}, (err, conteo) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'error al conectar con la base de datos',
+                        err: err
+                    })
+                }
+                res.status(200).json({
+                    ok: true,
+                    usuarios: usuarios,
+                    conteo: conteo
+                });
+            })
         });
 
-});
-
-app.get('/prueba', (req, res) => {
-    res.status(200).json({
-        ok: true,
-        mesnsaje: 'si se pudo'
-    });
 });
 
 //actualizar usuario
@@ -114,7 +120,7 @@ app.post('/', (req, res) => {
 
 //borrar usuarios por el ID
 
-app.delete('/:id', mdAautenticacion.verificaToken, (req, res) => {
+app.delete('/:id', [mdAautenticacion.verificaToken, mdAautenticacion.verificaAdmin_ROLE], (req, res) => {
 
     var id = req.params.id;
 
@@ -140,6 +146,34 @@ app.delete('/:id', mdAautenticacion.verificaToken, (req, res) => {
     })
 })
 
+// buscar usuario
 
+app.get('/buscar/:termino', [mdAautenticacion.verificaToken, mdAautenticacion.verificaAdmin_ROLE], (req, res) => {
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
+    let termino = req.params.termino;
+    var regex = new RegExp(termino, 'i');
+
+    Usuario.find({ $or: [{ nombre: regex }, { email: regex }] })
+        .skip(desde)
+        .limit(12)
+        .exec((err, usuarios) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'error al conectar con la base de datos',
+                    err: err
+                })
+            }
+            Usuario.count({ $or: [{ nombre: regex }, { email: regex }] }, (err, conteo) => {
+                res.status(200).json({
+                    ok: true,
+                    usuarios: usuarios,
+                    conteo: conteo,
+                    busqueda: termino
+                });
+            })
+        });
+});
 
 module.exports = app;

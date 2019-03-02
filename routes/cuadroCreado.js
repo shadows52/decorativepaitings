@@ -30,7 +30,7 @@ app.get('/', mdAautenticacion.verificaToken, (req, res) => {
 
 app.get('/usuario/:id', mdAautenticacion.verificaToken, (req, res) => {
     var id = req.params.id;
-    CuadrosCreados.find({ usuario: id })
+    CuadrosCreados.find({ $and: [{ usuario: id }, { Venta: 'sinID' }] })
         .exec((err, cuadrosCreados) => {
             if (err) {
                 return res.status(500).json({
@@ -43,6 +43,26 @@ app.get('/usuario/:id', mdAautenticacion.verificaToken, (req, res) => {
                 ok: true,
                 cuadrosCreados: cuadrosCreados
             });
+        });
+});
+
+// obtiene cuadros por ID de venta
+
+app.get('/idventa/:id', mdAautenticacion.verificaToken, (req, res) => {
+    var id = req.params.id;
+    CuadrosCreados.find({ Venta: id })
+        .exec((err, listCreados) => {
+            if (err) {
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'error al conectar con la base de datos',
+                    err: err
+                })
+            }
+            res.status(200).json({
+                ok: true,
+                creados: listCreados
+            })
         });
 });
 

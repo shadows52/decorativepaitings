@@ -20,7 +20,7 @@ app.post('/', mdAautenticacion.verificaToken, (req, res) => {
         referencias: body.referencias,
         telefono: body.telefono
     });
-    DatosEnvio.find({ usuario: body.usuario })
+    DatosEnvio.find({ $and: [{ usuario: body.usuario }, { Venta: 'sinID' }] })
         .exec((err, existe) => {
             if (err) {
                 return res.status(500).json({
@@ -84,4 +84,15 @@ app.post('/', mdAautenticacion.verificaToken, (req, res) => {
 });
 
 
+// obtiene datos de envio por id de venta
+
+app.get('/:id', mdAautenticacion.verificaToken, (req, res) => {
+    var id = req.params.id;
+    DatosEnvio.find({ Venta: id }).exec((err, envioDB) => {
+        res.status(200).json({
+            ok: true,
+            envio: envioDB[0]
+        })
+    })
+});
 module.exports = app;
